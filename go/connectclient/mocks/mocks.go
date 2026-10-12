@@ -29,7 +29,7 @@ import (
 
 	"github.com/google/uuid"
 
-	proto "github.com/adbc-drivers/spark/go/connectclient/internal/generated"
+	proto "github.com/adbc-drivers/spark/go/internal/generated"
 	"google.golang.org/grpc/metadata"
 )
 

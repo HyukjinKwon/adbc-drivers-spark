@@ -23,8 +23,8 @@ package types
 import (
 	"errors"
 
-	"github.com/adbc-drivers/spark/go/connectclient/internal/generated"
 	"github.com/adbc-drivers/spark/go/connectclient/sparkerrors"
+	"github.com/adbc-drivers/spark/go/internal/generated"
 )
 
 func ConvertProtoDataTypeToStructType(input *generated.DataType) (*StructType, error) {

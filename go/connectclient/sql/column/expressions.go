@@ -29,7 +29,7 @@ import (
 
 	"github.com/adbc-drivers/spark/go/connectclient/sparkerrors"
 
-	proto "github.com/adbc-drivers/spark/go/connectclient/internal/generated"
+	proto "github.com/adbc-drivers/spark/go/internal/generated"
 )
 
 func newProtoExpression() *proto.Expression {

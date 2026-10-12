@@ -21,6 +21,6 @@
 version: v1
 plugins:
   - plugin: buf.build/protocolbuffers/go:v1.36.11
-    out: connectclient
+    out: .
   - plugin: buf.build/grpc/go:v1.6.2
-    out: connectclient
+    out: .

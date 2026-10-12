@@ -25,10 +25,10 @@ import (
 
 	"github.com/adbc-drivers/spark/go/connectclient/sql/types"
 
-	proto "github.com/adbc-drivers/spark/go/connectclient/internal/generated"
 	"github.com/adbc-drivers/spark/go/connectclient/sparkerrors"
 	"github.com/adbc-drivers/spark/go/connectclient/sql/column"
 	"github.com/adbc-drivers/spark/go/connectclient/sql/functions"
+	proto "github.com/adbc-drivers/spark/go/internal/generated"
 )
 
 type GroupedData struct {

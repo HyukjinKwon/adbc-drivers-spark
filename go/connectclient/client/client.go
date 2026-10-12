@@ -42,8 +42,8 @@ import (
 	"github.com/apache/arrow-go/v18/arrow"
 	"github.com/apache/arrow-go/v18/arrow/array"
 
-	proto "github.com/adbc-drivers/spark/go/connectclient/internal/generated"
 	"github.com/adbc-drivers/spark/go/connectclient/sparkerrors"
+	proto "github.com/adbc-drivers/spark/go/internal/generated"
 )
 
 type sparkConnectClientImpl struct {

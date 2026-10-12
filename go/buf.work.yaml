@@ -20,4 +20,4 @@
 #
 version: v1
 directories:
-  - connectclient/proto
+  - proto

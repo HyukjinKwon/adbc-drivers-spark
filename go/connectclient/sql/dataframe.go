@@ -33,8 +33,8 @@ import (
 
 	"github.com/adbc-drivers/spark/go/connectclient/sql/types"
 
-	proto "github.com/adbc-drivers/spark/go/connectclient/internal/generated"
 	"github.com/adbc-drivers/spark/go/connectclient/sparkerrors"
+	proto "github.com/adbc-drivers/spark/go/internal/generated"
 )
 
 // ResultCollector receives a stream of result rows

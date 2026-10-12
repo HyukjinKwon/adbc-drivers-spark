@@ -28,8 +28,8 @@ import (
 
 	"github.com/adbc-drivers/spark/go/connectclient/client/base"
 
-	"github.com/adbc-drivers/spark/go/connectclient/internal/generated"
 	"github.com/adbc-drivers/spark/go/connectclient/sql/types"
+	"github.com/adbc-drivers/spark/go/internal/generated"
 	"github.com/apache/arrow-go/v18/arrow"
 )
 
