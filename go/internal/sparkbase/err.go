@@ -15,6 +15,7 @@
 package sparkbase
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"strings"
@@ -22,6 +23,8 @@ import (
 	"github.com/adbc-drivers/spark/go/connectclient/sparkerrors"
 	"github.com/adbc-drivers/spark/go/internal/hiveserver2"
 	"github.com/apache/arrow-adbc/go/adbc"
+	"google.golang.org/grpc/codes"
+	grpcstatus "google.golang.org/grpc/status"
 )
 
 var ErrTBD = adbc.Error{
@@ -35,7 +38,7 @@ func ErrToAdbcErr(defaultStatus adbc.Status, err error, context string, contextA
 		return err
 	}
 
-	status := defaultStatus
+	status := statusFromGRPC(defaultStatus, err)
 	var details []adbc.ErrorDetail
 	var sqlState [5]byte
 	if sparkErr, ok := errors.AsType[*sparkerrors.SparkError](err); ok {
@@ -107,6 +110,44 @@ func statusFromSQLState(defaultStatus adbc.Status, sqlState string) adbc.Status 
 		return adbc.StatusInvalidArgument
 	case "42K03", "42P01", "42704":
 		return adbc.StatusNotFound
+	default:
+		return defaultStatus
+	}
+}
+
+// statusFromGRPC maps cancellation, deadlines, and gRPC status codes to ADBC
+// statuses, keeping defaultStatus for codes without a more specific one.
+func statusFromGRPC(defaultStatus adbc.Status, err error) adbc.Status {
+	code := codes.Unknown
+	if sparkErr, ok := errors.AsType[*sparkerrors.SparkError](err); ok {
+		code = sparkErr.Code
+	} else if grpcStatus, ok := grpcstatus.FromError(err); ok {
+		code = grpcStatus.Code()
+	} else if errors.Is(err, context.Canceled) {
+		code = codes.Canceled
+	} else if errors.Is(err, context.DeadlineExceeded) {
+		code = codes.DeadlineExceeded
+	}
+
+	switch code {
+	case codes.Canceled:
+		return adbc.StatusCancelled
+	case codes.DeadlineExceeded:
+		return adbc.StatusTimeout
+	case codes.InvalidArgument:
+		return adbc.StatusInvalidArgument
+	case codes.NotFound:
+		return adbc.StatusNotFound
+	case codes.AlreadyExists:
+		return adbc.StatusAlreadyExists
+	case codes.Unauthenticated:
+		return adbc.StatusUnauthenticated
+	case codes.PermissionDenied:
+		return adbc.StatusUnauthorized
+	case codes.Unimplemented:
+		return adbc.StatusNotImplemented
+	case codes.Unavailable:
+		return adbc.StatusIO
 	default:
 		return defaultStatus
 	}
