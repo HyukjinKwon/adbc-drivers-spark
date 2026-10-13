@@ -275,7 +275,13 @@ func defaultGetTablesWithColumns(c SparkClient, ctx context.Context, catalog str
 	for idx := range tables {
 		columns, err := defaultDescribeTable(c, ctx, catalog, schema, tables[idx].TableName)
 		if err != nil {
-			return nil, err
+			if ctx.Err() != nil {
+				return nil, err
+			}
+			// One table that can't be described, for example because it was
+			// dropped after SHOW TABLES or can't be read, shouldn't fail the
+			// whole listing. List it without columns.
+			continue
 		}
 		if columnFilterRe != nil {
 			filtered := make([]driverbase.ColumnInfo, 0, len(columns))
