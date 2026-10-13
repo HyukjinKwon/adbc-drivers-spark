@@ -34,8 +34,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	proto "github.com/adbc-drivers/spark/go/connectclient/internal/generated"
 	"github.com/adbc-drivers/spark/go/connectclient/sql/types"
+	proto "github.com/adbc-drivers/spark/go/internal/generated"
 )
 
 func TestShowArrowBatchData(t *testing.T) {

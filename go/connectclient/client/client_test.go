@@ -28,9 +28,9 @@ import (
 
 	"github.com/adbc-drivers/spark/go/connectclient/client"
 	"github.com/adbc-drivers/spark/go/connectclient/client/testutils"
-	proto "github.com/adbc-drivers/spark/go/connectclient/internal/generated"
 	"github.com/adbc-drivers/spark/go/connectclient/mocks"
 	"github.com/adbc-drivers/spark/go/connectclient/sparkerrors"
+	proto "github.com/adbc-drivers/spark/go/internal/generated"
 	"github.com/stretchr/testify/assert"
 )
 

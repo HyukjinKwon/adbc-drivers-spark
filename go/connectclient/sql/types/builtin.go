@@ -23,7 +23,7 @@ package types
 import (
 	"context"
 
-	proto "github.com/adbc-drivers/spark/go/connectclient/internal/generated"
+	proto "github.com/adbc-drivers/spark/go/internal/generated"
 )
 
 type LiteralType interface {

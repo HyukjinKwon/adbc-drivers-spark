@@ -24,7 +24,7 @@ import (
 	"context"
 	"testing"
 
-	proto "github.com/adbc-drivers/spark/go/connectclient/internal/generated"
+	proto "github.com/adbc-drivers/spark/go/internal/generated"
 	"github.com/stretchr/testify/assert"
 )
 

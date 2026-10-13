@@ -39,8 +39,8 @@ import (
 
 	"github.com/adbc-drivers/spark/go/connectclient/client"
 	"github.com/adbc-drivers/spark/go/connectclient/client/channel"
-	proto "github.com/adbc-drivers/spark/go/connectclient/internal/generated"
 	"github.com/adbc-drivers/spark/go/connectclient/sparkerrors"
+	proto "github.com/adbc-drivers/spark/go/internal/generated"
 	"google.golang.org/grpc/metadata"
 )
 

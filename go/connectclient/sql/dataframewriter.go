@@ -25,8 +25,8 @@ import (
 	"fmt"
 	"strings"
 
-	proto "github.com/adbc-drivers/spark/go/connectclient/internal/generated"
 	"github.com/adbc-drivers/spark/go/connectclient/sparkerrors"
+	proto "github.com/adbc-drivers/spark/go/internal/generated"
 )
 
 // DataFrameWriter supports writing data frame to storage.

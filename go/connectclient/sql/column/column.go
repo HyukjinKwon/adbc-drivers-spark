@@ -25,7 +25,7 @@ import (
 
 	"github.com/adbc-drivers/spark/go/connectclient/sql/types"
 
-	proto "github.com/adbc-drivers/spark/go/connectclient/internal/generated"
+	proto "github.com/adbc-drivers/spark/go/internal/generated"
 )
 
 // Convertible is the interface for all things that can be converted into a protobuf expression.

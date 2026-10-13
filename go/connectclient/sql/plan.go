@@ -23,7 +23,7 @@ package sql
 import (
 	"sync/atomic"
 
-	proto "github.com/adbc-drivers/spark/go/connectclient/internal/generated"
+	proto "github.com/adbc-drivers/spark/go/internal/generated"
 )
 
 var atomicInt64 atomic.Int64

@@ -24,7 +24,7 @@ import (
 	"context"
 
 	"github.com/adbc-drivers/spark/go/connectclient/client/base"
-	proto "github.com/adbc-drivers/spark/go/connectclient/internal/generated"
+	proto "github.com/adbc-drivers/spark/go/internal/generated"
 )
 
 // RuntimeConfig is the public interface for runtime configuration.

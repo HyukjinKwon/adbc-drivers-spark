@@ -20,7 +20,7 @@
 
 package utils
 
-import proto "github.com/adbc-drivers/spark/go/connectclient/internal/generated"
+import proto "github.com/adbc-drivers/spark/go/internal/generated"
 
 type ExplainMode int
 
