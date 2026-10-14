@@ -16,6 +16,7 @@ package sparkbase
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"log/slog"
@@ -261,6 +262,13 @@ func defaultGetTablesOnly(c SparkClient, ctx context.Context, catalog string, sc
 	return tables, nil
 }
 
+// isNotFoundOrForbidden reports whether err means the object doesn't exist or
+// can't be accessed, the equivalents of HTTP 404 and 403.
+func isNotFoundOrForbidden(err error) bool {
+	adbcErr, ok := errors.AsType[adbc.Error](err)
+	return ok && (adbcErr.Code == adbc.StatusNotFound || adbcErr.Code == adbc.StatusUnauthorized)
+}
+
 func defaultGetTablesWithColumns(c SparkClient, ctx context.Context, catalog string, schema string, tableFilter *string, columnFilter *string) ([]driverbase.TableInfo, error) {
 	tables, err := defaultGetTablesOnly(c, ctx, catalog, schema, tableFilter)
 	if err != nil {
@@ -275,13 +283,14 @@ func defaultGetTablesWithColumns(c SparkClient, ctx context.Context, catalog str
 	for idx := range tables {
 		columns, err := defaultDescribeTable(c, ctx, catalog, schema, tables[idx].TableName)
 		if err != nil {
-			if ctx.Err() != nil {
-				return nil, err
+			// A table that's missing or can't be read shouldn't fail the
+			// whole listing; list it without columns. For example, SHOW
+			// TABLES lists temporary views in every schema, but DESCRIBE
+			// can't find them there. Other errors still fail the call.
+			if isNotFoundOrForbidden(err) {
+				continue
 			}
-			// One table that can't be described, for example because it was
-			// dropped after SHOW TABLES or can't be read, shouldn't fail the
-			// whole listing. List it without columns.
-			continue
+			return nil, err
 		}
 		if columnFilterRe != nil {
 			filtered := make([]driverbase.ColumnInfo, 0, len(columns))

@@ -75,21 +75,29 @@ func stringRows(names []string, row func(i int) []string, n int) (array.RecordRe
 	return rdr, -1, err
 }
 
-func TestTablesThatFailToDescribeAreListedWithoutColumns(t *testing.T) {
+func TestMissingOrForbiddenTablesAreListedWithoutColumns(t *testing.T) {
 	c := &describeClient{
-		tables: []string{"a", "broken", "b"},
-		broken: map[string]error{"broken": adbc.Error{
-			Code: adbc.StatusNotFound,
-			Msg:  "[spark] [TABLE_OR_VIEW_NOT_FOUND] The table or view `broken` cannot be found.",
-		}},
+		tables: []string{"a", "missing", "forbidden", "b"},
+		broken: map[string]error{
+			"missing": adbc.Error{
+				Code:     adbc.StatusNotFound,
+				Msg:      "[spark] [TABLE_OR_VIEW_NOT_FOUND] The table or view `missing` cannot be found.",
+				SqlState: [5]byte{'4', '2', 'P', '0', '1'},
+			},
+			"forbidden": adbc.Error{
+				Code:     adbc.StatusUnauthorized,
+				Msg:      "[spark] [INSUFFICIENT_PERMISSIONS] Insufficient privileges.",
+				SqlState: [5]byte{'4', '2', '5', '0', '1'},
+			},
+		},
 	}
 
 	tables, err := DefaultGetTablesForDBSchemaImpl(c, context.Background(), "cat", "db", nil, nil, true)
 	require.NoError(t, err)
-	require.Len(t, tables, 3)
+	require.Len(t, tables, 4)
 	for _, table := range tables {
-		if table.TableName == "broken" {
-			require.Equal(t, []driverbase.ColumnInfo{}, table.TableColumns)
+		if _, broken := c.broken[table.TableName]; broken {
+			require.Equal(t, []driverbase.ColumnInfo{}, table.TableColumns, table.TableName)
 			continue
 		}
 		require.Len(t, table.TableColumns, 1, table.TableName)
@@ -97,11 +105,22 @@ func TestTablesThatFailToDescribeAreListedWithoutColumns(t *testing.T) {
 	}
 }
 
-func TestDescribeFailsTheListingWhenCancelled(t *testing.T) {
-	c := &describeClient{tables: []string{"a", "b"}}
-	ctx, cancel := context.WithCancel(context.Background())
-	cancel()
-
-	_, err := DefaultGetTablesForDBSchemaImpl(c, ctx, "cat", "db", nil, nil, true)
-	require.ErrorIs(t, err, context.Canceled)
+func TestOtherDescribeErrorsFailTheListing(t *testing.T) {
+	t.Run("io", func(t *testing.T) {
+		c := &describeClient{
+			tables: []string{"a", "b"},
+			broken: map[string]error{"b": adbc.Error{Code: adbc.StatusIO, Msg: "[spark] connection reset"}},
+		}
+		_, err := DefaultGetTablesForDBSchemaImpl(c, context.Background(), "cat", "db", nil, nil, true)
+		var adbcErr adbc.Error
+		require.ErrorAs(t, err, &adbcErr)
+		require.Equal(t, adbc.StatusIO, adbcErr.Code)
+	})
+	t.Run("cancelled", func(t *testing.T) {
+		c := &describeClient{tables: []string{"a", "b"}}
+		ctx, cancel := context.WithCancel(context.Background())
+		cancel()
+		_, err := DefaultGetTablesForDBSchemaImpl(c, ctx, "cat", "db", nil, nil, true)
+		require.ErrorIs(t, err, context.Canceled)
+	})
 }
