@@ -262,13 +262,6 @@ func defaultGetTablesOnly(c SparkClient, ctx context.Context, catalog string, sc
 	return tables, nil
 }
 
-// isNotFoundOrForbidden reports whether err means the object doesn't exist or
-// can't be accessed, the equivalents of HTTP 404 and 403.
-func isNotFoundOrForbidden(err error) bool {
-	adbcErr, ok := errors.AsType[adbc.Error](err)
-	return ok && (adbcErr.Code == adbc.StatusNotFound || adbcErr.Code == adbc.StatusUnauthorized)
-}
-
 func defaultGetTablesWithColumns(c SparkClient, ctx context.Context, catalog string, schema string, tableFilter *string, columnFilter *string) ([]driverbase.TableInfo, error) {
 	tables, err := defaultGetTablesOnly(c, ctx, catalog, schema, tableFilter)
 	if err != nil {
@@ -287,7 +280,8 @@ func defaultGetTablesWithColumns(c SparkClient, ctx context.Context, catalog str
 			// whole listing; list it without columns. For example, SHOW
 			// TABLES lists temporary views in every schema, but DESCRIBE
 			// can't find them there. Other errors still fail the call.
-			if isNotFoundOrForbidden(err) {
+			adbcErr, ok := errors.AsType[adbc.Error](err)
+			if ok && (adbcErr.Code == adbc.StatusNotFound || adbcErr.Code == adbc.StatusUnauthorized) {
 				continue
 			}
 			return nil, err

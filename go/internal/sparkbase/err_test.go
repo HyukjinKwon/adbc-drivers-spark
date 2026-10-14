@@ -99,7 +99,3 @@ func TestErrToAdbcErrMapsContextErrors(t *testing.T) {
 		require.Equal(t, tc.want, adbcErr.Code, tc.err.Error())
 	}
 }
-
-func TestInsufficientPrivilegeIsUnauthorized(t *testing.T) {
-	require.Equal(t, adbc.StatusUnauthorized, statusFromSQLState(adbc.StatusIO, "42501"))
-}

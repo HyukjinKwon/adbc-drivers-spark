@@ -111,7 +111,6 @@ func statusFromSQLState(defaultStatus adbc.Status, sqlState string) adbc.Status 
 	case "42K03", "42P01", "42704":
 		return adbc.StatusNotFound
 	case "42501":
-		// Insufficient privilege, such as INSUFFICIENT_PERMISSIONS on Databricks.
 		return adbc.StatusUnauthorized
 	default:
 		return defaultStatus
