@@ -27,7 +27,8 @@ def pytest_generate_tests(metafunc) -> None:
 class TestConnection(adbc_drivers_validation.tests.connection.TestConnection):
     def test_get_objects_temporary_view(self, driver, conn) -> None:
         # SHOW TABLES lists temporary views in every schema of the session
-        # catalog, but DESCRIBE TABLE can't find them there.
+        # catalog, but DESCRIBE TABLE can't find them there. Other catalogs,
+        # such as Iceberg, don't list them, so look in spark_catalog.default.
         view = f"temp_view_{uuid.uuid4().hex[:8]}"
         with conn.cursor() as cursor:
             cursor.execute(
@@ -37,7 +38,7 @@ class TestConnection(adbc_drivers_validation.tests.connection.TestConnection):
             objects = conn.adbc_get_objects(
                 depth="all",
                 catalog_filter="spark_catalog",
-                db_schema_filter=driver.features.current_schema,
+                db_schema_filter="default",
                 table_name_filter=view,
             )
             tables = [

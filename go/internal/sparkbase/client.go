@@ -278,8 +278,9 @@ func defaultGetTablesWithColumns(c SparkClient, ctx context.Context, catalog str
 		if err != nil {
 			// A table that's missing or can't be read shouldn't fail the
 			// whole listing; list it without columns. For example, SHOW
-			// TABLES lists temporary views in every schema, but DESCRIBE
-			// can't find them there. Other errors still fail the call.
+			// TABLES lists temporary views in every schema of the session
+			// catalog, but DESCRIBE can't find them there. Other errors
+			// still fail the call.
 			adbcErr, ok := errors.AsType[adbc.Error](err)
 			if ok && (adbcErr.Code == adbc.StatusNotFound || adbcErr.Code == adbc.StatusUnauthorized) {
 				continue
