@@ -110,6 +110,8 @@ func statusFromSQLState(defaultStatus adbc.Status, sqlState string) adbc.Status 
 		return adbc.StatusInvalidArgument
 	case "42K03", "42P01", "42704":
 		return adbc.StatusNotFound
+	case "42501":
+		return adbc.StatusUnauthorized
 	default:
 		return defaultStatus
 	}

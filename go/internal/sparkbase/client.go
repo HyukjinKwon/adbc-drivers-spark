@@ -16,6 +16,7 @@ package sparkbase
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"log/slog"
@@ -275,6 +276,15 @@ func defaultGetTablesWithColumns(c SparkClient, ctx context.Context, catalog str
 	for idx := range tables {
 		columns, err := defaultDescribeTable(c, ctx, catalog, schema, tables[idx].TableName)
 		if err != nil {
+			// A table that's missing or can't be read shouldn't fail the
+			// whole listing; list it without columns. For example, SHOW
+			// TABLES lists temporary views in every schema of the session
+			// catalog, but DESCRIBE can't find them there. Other errors
+			// still fail the call.
+			adbcErr, ok := errors.AsType[adbc.Error](err)
+			if ok && (adbcErr.Code == adbc.StatusNotFound || adbcErr.Code == adbc.StatusUnauthorized) {
+				continue
+			}
 			return nil, err
 		}
 		if columnFilterRe != nil {
