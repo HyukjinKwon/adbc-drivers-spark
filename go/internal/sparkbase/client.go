@@ -158,10 +158,12 @@ func executeMetadataQuery(c SparkClient, ctx context.Context, sql string) (array
 // for Spark's SHOW commands, and a regexp that matches names on the client.
 // A nil or empty pattern matches every name.
 //
-// SHOW ... LIKE takes a case-insensitive regex in which '*' matches any
-// characters and '|' separates alternatives, and it trims the pattern. '*'
-// and '|' can't be escaped, so a pattern that contains either, or starts or
-// ends with a space, gets no LIKE clause and is matched only on the client.
+// SHOW ... LIKE takes Spark's own syntax: a regex in which '*' matches any
+// characters and '|' separates alternatives, matched ignoring the case of
+// ASCII letters only. So only a pattern of ASCII letters, digits, '%', and
+// '_' gets a LIKE clause, which needs no quoting; any other pattern is
+// matched only on the client. Names in Spark's session catalog can only
+// contain those characters anyway.
 func nameFilter(pattern *string) (string, *regexp.Regexp, error) {
 	if pattern == nil || *pattern == "" {
 		return "", nil, nil
@@ -170,21 +172,20 @@ func nameFilter(pattern *string) (string, *regexp.Regexp, error) {
 	if err != nil {
 		return "", nil, err
 	}
-	if strings.ContainsAny(*pattern, "*|") || strings.TrimSpace(*pattern) != *pattern {
-		return "", match, nil
-	}
-	var regex strings.Builder
+	var like strings.Builder
 	for _, r := range *pattern {
-		switch r {
-		case '%':
-			regex.WriteByte('*')
-		case '_':
-			regex.WriteByte('.')
+		switch {
+		case r == '%':
+			like.WriteByte('*')
+		case r == '_':
+			like.WriteByte('.')
+		case 'a' <= r && r <= 'z', 'A' <= r && r <= 'Z', '0' <= r && r <= '9':
+			like.WriteRune(r)
 		default:
-			regex.WriteString(regexp.QuoteMeta(string(r)))
+			return "", match, nil
 		}
 	}
-	return " LIKE " + QuoteString(regex.String()), match, nil
+	return " LIKE " + QuoteString(like.String()), match, nil
 }
 
 func matchesName(match *regexp.Regexp, name string) bool {

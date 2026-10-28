@@ -102,3 +102,34 @@ class TestConnection(adbc_drivers_validation.tests.connection.TestConnection):
             with conn.cursor() as cursor:
                 for table in tables:
                     cursor.execute(driver.drop_table(table_name=table))
+
+    def test_get_objects_non_ascii_name_pattern(self, driver, conn) -> None:
+        if "thrift" in driver.short_version:
+            pytest.skip("Thrift matches name patterns on the server (#104)")
+        # SHOW ... LIKE ignores the case of ASCII letters only, so this pattern
+        # must be matched on the client. Tables in the session catalog can't
+        # have such a name, but temporary views can.
+        view = f"übersicht_{uuid.uuid4().hex[:8]}"
+        with conn.cursor() as cursor:
+            cursor.execute(
+                f"CREATE TEMPORARY VIEW {driver.quote_one_identifier(view)} AS SELECT 1 AS id"
+            )
+        try:
+            objects = conn.adbc_get_objects(
+                depth="tables",
+                catalog_filter="spark_catalog",
+                db_schema_filter="default",
+                table_name_filter=view.upper(),
+            )
+            tables = [
+                t["table_name"]
+                for obj in objects.read_all().to_pylist()
+                for s in obj["catalog_db_schemas"]
+                for t in s["db_schema_tables"]
+            ]
+            assert tables == [view]
+        finally:
+            with conn.cursor() as cursor:
+                cursor.execute(
+                    f"DROP VIEW IF EXISTS {driver.quote_one_identifier(view)}"
+                )
